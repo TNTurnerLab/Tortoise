@@ -140,7 +140,7 @@ rule grabFamilies_DV:
     echo "Keep Samples DV"
     mkdir -p {OUT_DIR}/{params.prefix}
     #Grabs the trio from the GLnexus DeepVariant (DV) file, then compresses and creates an index
-    bcftools view -Oz --threads 4 -s $trio {GLNEXUS_FILE_DV}/{params.prefix}.trio.ssc.dv.vcf.gz  > {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus.dv.vcf.gz
+    bcftools view -Oz --threads 4 -s $trio {input}  > {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus.dv.vcf.gz
 
     tabix {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus.dv.vcf.gz
 
@@ -155,7 +155,7 @@ rule grabFamilies_DV:
     bgzip {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus_denovo_actual.dv.vcf
     tabix {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus_denovo_actual.dv.vcf.gz
 
-
+    rm {params.prefix}.glnexus_denovo.dv.vcf
 
 
     ls {output}
@@ -187,7 +187,7 @@ rule grabFamilies_HC:
     grep -w 'TRANSMITTED=no;INH=denovo_pro' {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus_denovo.hc.vcf >> {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus_denovo_actual.hc.vcf
     bgzip {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus_denovo_actual.hc.vcf
     tabix {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus_denovo_actual.hc.vcf.gz
-
+    rm {params.prefix}.glnexus_denovo.hc.vcf
     """
 
 rule combinedAndFilter:
