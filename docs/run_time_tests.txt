@@ -1,0 +1,58 @@
+GATK Run time (hmm threads 4):
+NA12878:  36.95 hrs - CPU time: 53.85 hrs - Max mem 26900 MB
+NA12891:  40.10 hrs - CPU time: 58.70 hrs - Max mem 26571 MB
+NA12892:  39.5 hrs  - CPU time: 56.70 hrs - Max mem 26372 MB
+
+DeepVariant v.0.10.0 Run time:
+NA12878:  6.17 hrs - CPU time: 252.04 hrs - Max mem 39752 MB
+NA12891:  5.23 hrs - CPU time: 126.95 hrs - Max mem 41679 MB
+NA12892:  6.15 hrs - CPU time: 255.00 hrs - Max mem 39633 MB
+
+
+GLnexus HC Run time:  32.52 min
+
+GLnexus DV v0.10.0 Run time:  12.65 min
+
+GLnexus DV v1.1.0 Run time:  15.8 min
+
+
+Post Process HC Run time: 46 sec
+
+Post Process DV v0.10.0 Run time: 41 sec
+
+Post Process DV v1.1.0 Run time:  200 sec
+
+
+Pull families HC Run time: 12.85 min
+
+Pull families DV v0.10.0 Run time: 6.85 min
+
+Pull families DV v1.1.0  Run time:  8.43 min
+
+Call de novo variants (DV v0.10.0): 57 sec
+Call de novo variants (DV v1.1.0):  3.83 min
+
+===================================================
+
+
+NA19240 GPU:  1097 Total DNVs
+NA19240 CPU:  1087 Total DNVs
+
+
+GATK run time: (Default, hmm threads 4)
+NA19238:  Real Run time: 2.17 days - CPU time: 75.95 hrs - max mem 25941 MB
+NA19239:  Real Run time: 1.63 days - CPU time: 60.42 hrs - max mem 25913 MB
+NA19240:  Real Run time: 1.68 days - CPU time: 61.83 hrs - max mem 26737 MB
+
+
+DeepVariant run time:
+NA19238:  Real Run time: 5.73 hrs - CPU time: 144.55 hrs - max mem 48929 MB
+NA19239:  Real Run time: 7.30 hrs - CPU time: 302.53 hrs - max mem 47652 MB
+NA19240:  Real Run time: 7.11 hrs - CPU time: 291.05 hrs - max mem 45533 MB
+
+GATK GLnexus run time:  28.12 min, max mem 116107 MB
+
+DeepVariant run time:  10 min, max mem 43691 MB
+
+
+===================================================
