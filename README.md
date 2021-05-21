@@ -9,8 +9,10 @@ Uses only CPU based programs to call de novo variants
 Testing progress:
 Docker -> builds
 
-Workflow -> Test running
+Workflow -> Finish running, fixed errors. 
 
-GPU comparison -> NA
+GPU comparison -> High levels of overlap with GPU output
 
-Larger scale test -> NA
+Larger scale test -> Run on 3 more trios, with similar high levels of overlap
+
+Resource/run time optimization -> GATK thread optimization
