@@ -216,7 +216,7 @@ rule grabFamilies_DV:
     """
 
 rule grabFamilies_HC:
-    input: "%s/{family}.trio.ssc.hc.vcf.gz" % GLNEXUS_FILE_HC_VCF
+    input: "%s/{family}.trio.hc.vcf.gz" % GLNEXUS_FILE_HC_VCF
     output:  "%s/{family}/{family}.glnexus_denovo_actual.hc.vcf.gz" % OUT_DIR
     params:  prefix="{family}"
     shell: """
@@ -267,8 +267,10 @@ rule combinedAndFilter:
     echo 'Set up filter script'
     actual=$( cat {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus.family.combined_intersection.vcf | grep '#' | tail -n 1 | cut -f 10-13 )
     echo $actual
-    trio=$( grep {params.prefix} {FAMILY_FILE} )
-    trio=$( echo $trio | cut -d' ' -f 1-3 )
+   
+    temp=$( grep {params.prefix} {FAMILY_FILE} )
+    temp=$( echo $temp | cut -d',' -f 1-3 )
+    trio=$( echo $temp | tr ',' ' ')
     echo $trio
     echo "Run filter script"
     #Python script that filters for parents with no alt allele, depth of set value, GQ of set value, and allele balance of .25
