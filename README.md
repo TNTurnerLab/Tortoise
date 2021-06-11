@@ -20,12 +20,12 @@ Resource/run time optimization -> GATK thread optimization -> Default seems to b
 
 Add more user options for testing (regions not included), pathway checks for config file.
 
-Need a local version!!
+Need a local version!! -> working.
 
 ============ -> README START
 # *de novo* variant calling workflow
 
-This pipeline takes in aligned, short read Illumina data, as cram files, for a family trio and reports *de novo* variants in a vcf file.  This is a modified version pipeline run from Ng et al. 2021 (hopefully! :D), making use of the open source, CPU versions of the programs that were GPU accelerated in the paper. 
+This pipeline takes in aligned, short read Illumina data, as cram files, for a family trio and reports *de novo* variants in a vcf file.  This is a modified version pipeline run from Ng et al. 2021, making use of the open source, CPU versions of the programs that were GPU accelerated in the paper. 
 
 
 # How to Run
@@ -49,35 +49,41 @@ wget -q ftp://ftp.sra.ebi.ac.uk/vol1/run/ERR398/ERR3989342/NA12892.final.cram
 wget -q ftp://ftp.sra.ebi.ac.uk/vol1/run/ERR398/ERR3989342/NA12892.final.cram.crai
 ```
 
-An example family file for this trio is provided in the test folder * **Make a test folder** *
+Example .bam files are found in the test_code folder for testing purposes.
 
-Before running, please change the config file so that it will point to all of the correct directories.  
+Before running, please make any necessary changes to these options below in the config.json. 
 
-* reference:  Reference file
-* family_file:  Trio family file, comma delimited
-* gatk_out:  Pathway to where the GATK output will go
-* dv_out:  Pathway to where the DeepVaraint output will go
-* glnexus_file_dv_bcf:  Pathway to where the GLnexus .bcf file will be generated for DeepVariant gvcfs
-* glnexus_file_hc_bcf:  Pathway to where the GLnexus .bcf file will be generated for GATK gvcfs
-* glnexus_file_dv_vcf:  Pathway to where the joint genotyped .vcf file will be generated from DeepVariant gvcfs
-* glnexus_file_hc_vcf:  Pathway to where the joint genotyped .vcf file will be generated from GATK gvcfs
-* glnexus_file_dv:  Pathway to where the vcf output from GLnexus run on DeepVariant is 
-* glnexus_file_hc:  Pathway to where the vcf output from GLnexus run on GATK Haploytpecaller is  
-* regions:  Folder to where RepeatMasker files are for region based filtering 
-* gq_value:  gq value filter
-* depth_value: Depth value filter
-* out_dir:  Output directory 
+* regions:  "/region" *If you don't have the RepeatMasker files, please make this entry blank*
+* cluster:  0 *If you are running this code locally, please make this value 1*
+* gq_value:  20 *gq value filter*
+* depth_value: 10 *Depth value filter*
+* suffix: "\_test.bam" *Suffix of your data files.  Assumes input files are \<sample\_name\>\<suffix\>* 
 
 **Note for RepeatMasker files**
 
-We filter *de novo* mutations by regions using files obtained from RepeatMasker.  We filter low complexity regions, recent repeats, centromeme regions, and CpG sites.  If you would like to use this option, you'll need to download the files yourself.  The link can be found here * **Find the link** *  If not, please keep the regions config blank. * **Implement blank region command** *.  
+We filter *de novo* mutations by regions using files obtained from RepeatMasker.  We filter low complexity regions, recent repeats, centromeme regions, and CpG sites.  If you would like to use this option, you'll need to download the files yourself. 
 
 ## Running
 
-To run the snake on a LSF server cluster it can be run like this:
+### Running on a LSF server
 
+First, set up your LSF_DOCKER_VOLUMES:
 ```
-bsub -g general -M 5G -oo %J.main.log -R 'span[hosts=1] rsuage[mem=5G]' -n 1 -a 'docker(jng2/testrepo2_actual:dn_wf_cpu_deep.0.1)' /miniconda3/bin/snakemake -s dnv_wf_cpu_test.snake --cluster-config cluster_config.json -j 6 --cluster "bsub -g general -M {cluster.mem} -n {cluster.n}  -R 'span[hosts=1] rusage[mem={cluster.mem}]'  -oo log/%J.log.txt"  -k --rerun-incomplete -w 120
+export LSF_DOCKER_VOLUMES="/path/to/crams/:/data_dir /path/to/reference:/reference /path/to/this/git/repo/:/dnv_wf_cpu/ /path/to/RepeatMasker/files:/region"
+```
+
+Then run this command:
+```
+bsub -q general -oo %J.main.log -R 'span[hosts=1] rusage[mem=5GB]' -a 'docker(jng2/testrepo2_actual:dn_wf_cpu_deep.0.1)' /miniconda3/bin/snakemake -j 6 --cluster-config cluster_config.json --cluster "bsub -q tychele -R 'span[hosts=1] rusage[mem={cluster.mem}]' -n {cluster.n} -M {cluster.mem} -a 'docker(jng2/testrepo2_actual:dn_wf_cpu_deep.0.1)' -M {cluster.mem} -oo log/%J.log.txt" -s gatk_deep_glnexus_qol.snake -k --rerun-incomplete -w 120 
+```
+
+### Running locally
+
+This code can be run locally.  It will use all possible CPU cores, as well as whatever RAM is free at run time.
+
+To run this locally, please run this command:
+```
+docker run -v "/path/to/crams/:/data_dir /path/to/reference:/reference /path/to/this/git/repo/:/dnv_wf_cpu/ /path/to/RepeatMasker/files:/region" jng2/testrepo2_actual:dn_wf_cpu_deep.0.1 /miniconda3/bin/snakemake -s /dnv_wf_cpu/gatk_deep_glnexus_qol.snake -k --rerun-incomplete -w 120
 ```
 
 ## Output
@@ -92,9 +98,9 @@ After the run, you'll find two main output files:
 
 ### Without the region option
 
-You will find 1 main output file:
+Your main output file is:
 * <child_name>.glnexus.family.combined_intersection_filtered_gq_<gq_value>\_depth_<depth_value>\.vcf
-  * This file hodl *de novo* variants that are not filtered by regions mentioned above.
+  * This file holds *de novo* variants that are not filtered by regions mentioned above.  The other two files will just contain the header file, but will be empty otherwise.
 
 ## GPU vs CPU output comparison
 
@@ -118,7 +124,7 @@ Run time information can be found within the docs folder.
   * DeepVariant v0.10.0
   * GATK v4.1.0.0
   * GLnexus v1.2.6
-  * Snakemake v.3. **something**
+  * Snakemake v3.12.0
   * python 3.6.5
   * python 2.7
   * BCFtools v1.9
