@@ -1,7 +1,7 @@
 import os
 import sys
-if config == {}:
-    configfile: "config.json"
+
+configfile: "/dnv_wf_cpu/config.json"
 
 REFERENCE = config["reference"]
 FAMILY_FILE=config["family_file"]
@@ -13,9 +13,11 @@ GLNEXUS_FILE_DV_VCF=config["glnexus_file_dv_vcf"]
 GLNEXUS_FILE_HC_VCF=config["glnexus_file_hc_vcf"]
 DATA_DIR=config["data_dir"]
 REGIONS=config["regions"]
+CLUSTER=config["cluster"]
 GQ_VALUE=config["gq_value"]
 DEPTH_VALUE=config["depth_value"]
 OUT_DIR=config["out_dir"]
+SUFFIX=config["suffix"]
 
 if not os.path.isfile(REFERENCE):
     sys.exit("Please update REFERENCE entry in the config file, the file cannot be seen or doesn't exist")
@@ -36,19 +38,17 @@ if GLNEXUS_FILE_DV_VCF is None:
 if GLNEXUS_FILE_HC_VCF is None:
     sys.exit("Please update glnexus_file_hc_vcf entry in the config file")
 if REGIONS is None:
-    sys.exit("Please update regions entry in the config file")
+    REGIONS=1
 if GQ_VALUE is None:
     sys.exit("Please update gq_value entry in the config file")
 if DEPTH_VALUE is None:
     sys.exit("Please update depth_value entry in the config file")
 if OUT_DIR is None:
     sys.exit("Please update out_dir entry in the config file")
-if not os.path.isfile('filter_glnexuscombined.py'):
-    sys.exit("filter_glnexuscombined.py file is missing")
-if not os.path.isfile('filter_glnexuscombined.py'):
-    sys.exit("filter_glnexuscombined.py file is missing")
-if not os.path.isfile('naive_inheritance_trio_py2.py'):
-    sys.exit("naive_inheritance_trio_py2.py is missing")
+if not os.path.isfile('/dnv_wf_cpu/filter_glnexuscombined.py'):
+    sys.exit("filter_glnexuscombined.py file is missing, please make sure you downloaded the git directory correctly")
+if not os.path.isfile('/dnv_wf_cpu/naive_inheritance_trio_py2.py'):
+    sys.exit("naive_inheritance_trio_py2.py is missing, please make sure you downloaded the git directory correctly")
 if DV_OUT.endswith('/') and DV_OUT!='':
     DV_OUT=DV_OUT[:-1]
 if GLNEXUS_FILE_DV_BCF.endswith('/') and GLNEXUS_FILE_DV_BCF!='':
@@ -61,14 +61,15 @@ if GLNEXUS_FILE_HC_VCF.endswith('/') and GLNEXUS_FILE_HC_VCF!='':
     GLNEXUS_FILE_HC_VCF=GLNEXUS_FILE_HC_VCF[:-1]
 if DATA_DIR.endswith('/') and DATA_DIR!='':
     DATA_DIR=DATA_DIR[:-1]
-if REGIONS.endswith('/') and REGIONS!='':
-    REGIONS=REGIONS[:-1]
+if REGIONS!=1:
+    if REGIONS.endswith('/'):
+        REGIONS=REGIONS[:-1]
 if OUT_DIR.endswith('/') and OUT_DIR!='':
-    OUT_DIR=OUT_DIR[:-1]   
+    OUT_DIR=OUT_DIR[:-1]
 if GATK_OUT.endswith('/') and GATK_OUT!='':
     GATK_OUT=GATK_OUT[:-1]
-    
-    
+
+
 FULL={}
 FAMILIES = []
 INDIVIDUALS=[]
@@ -96,8 +97,7 @@ def glnexus_intro_hc(wildcards):
     for thing in FULL[FAMILY]:
         if caller=='hc':
             temp.append(GATK_OUT+'/'+thing+'.gatk.cpu.g.vcf.gz')
-        if caller=='dv':
-            temp.append(thing+'.dv.cpu.g.vcf.gz')
+
     return (temp)
 def glnexus_intro_dv(wildcards):
     temp=[]
@@ -106,37 +106,50 @@ def glnexus_intro_dv(wildcards):
     print(FULL)
     caller='dv'
     for thing in FULL[FAMILY]:
-        if caller=='hc':
-            temp.append(GATK_OUT+'/'+thing+'.gatk.cpu.g.vcf.gz')
+
         if caller=='dv':
             temp.append(DV_OUT+'/'+thing+'.dv.cpu.gvcf.gz')
     return (temp)
-    
+
 rule all:
     input:  expand("%s/{individual}.gatk.cpu.g.vcf.gz" % GATK_OUT, individual=INDIVIDUALS), expand("%s/{individual}.dv.cpu.gvcf.gz" % DV_OUT, individual=INDIVIDUALS), expand("%s/{family}.glnexus.trio.dv.bcf" % GLNEXUS_FILE_DV_BCF, family = FAMILIES),expand("%s/{family}.glnexus.trio.hc.bcf" % GLNEXUS_FILE_HC_BCF, family = FAMILIES),expand("%s/{family}.trio.hc.vcf.gz" % GLNEXUS_FILE_HC_VCF, family=FAMILIES), expand("%s/{family}.trio.hc.vcf.gz.tbi" % GLNEXUS_FILE_HC_VCF, family=FAMILIES), expand("%s/{family}.trio.dv.vcf.gz" % GLNEXUS_FILE_DV_VCF, family=FAMILIES), expand("%s/{family}.trio.dv.vcf.gz.tbi" % GLNEXUS_FILE_DV_VCF, family=FAMILIES), expand("%s/{family}/{family}.glnexus_denovo_actual.dv.vcf.gz" % OUT_DIR, family = FAMILIES),expand("%s/{family}/{family}.glnexus_denovo_actual.hc.vcf.gz" % OUT_DIR, family = FAMILIES), expand("%s/{family}/{family}.glnexus.family.combined_intersection_filtered_gq_{gq_val}_depth_{depth_val}_position.vcf" %OUT_DIR,family = FAMILIES,gq_val=GQ_VALUES,depth_val=DEPTH_VALUES)
-    
+
 rule gatk:
-    input:  "%s/{individual}.final.cram" % DATA_DIR
+    input:  "%s/{individual}%s" % (DATA_DIR, SUFFIX)
     output:  "%s/{individual}.gatk.cpu.g.vcf.gz" % GATK_OUT
-    params: prefix="{individual}"
+    params: prefix="{individual}", clus="%s" % CLUSTER
     shell: """
     export PATH=/miniconda3/bin:$PATH
+    echo {params.clus}
     mkdir -p {GATK_OUT}
-    gatk --java-options "-Xmx64g" HaplotypeCaller -R {REFERENCE} -I {input} -O {output} --standard-min-confidence-threshold-for-calling 30  -L chr1 -L chr2 -L chr3 -L chr4 -L chr5 -L chr6 -L chr7 -L chr8 -L chr9 -L chr10 -L chr11 -L chr12 -L chr13 -L chr14 -L chr15 -L chr16 -L chr17 -L chr18 -L chr19 -L chr20 -L chr21 -L chr22 -L chrX -L chrY -ERC GVCF  
+    if [ {params.clus} -ne 1 ]
+    then
+        gatk --java-options "-Xmx64g" HaplotypeCaller -R {REFERENCE} -I {input} -O {output} --standard-min-confidence-threshold-for-calling 30  -L chr1 -L chr2 -L chr3 -L chr4 -L chr5 -L chr6 -L chr7 -L chr8 -L chr9 -L chr10 -L chr11 -L chr12 -L chr13 -L chr14 -L chr15 -L chr16 -L chr17 -L chr18 -L chr19 -L chr20 -L chr21 -L chr22 -L chrX -L chrY -ERC GVCF
+    else
+        mem=$( free -g | awk 'NR==2{{printf "%sg", $4 }}' )
+        echo $mem
+        gatk --java-options "-Xmx$mem" HaplotypeCaller -R {REFERENCE} -I {input} -O {output} --standard-min-confidence-threshold-for-calling 30  -L chr1 -L chr2 -L chr3 -L chr4 -L chr5 -L chr6 -L chr7 -L chr8 -L chr9 -L chr10 -L chr11 -L chr12 -L chr13 -L chr14 -L chr15 -L chr16 -L chr17 -L chr18 -L chr19 -L chr20 -L chr21 -L chr22 -L chrX -L chrY -ERC GVCF
+
+    fi
     touch {output}.tbi
     """
-    
+
 rule deepvariant:
-    input:  "%s/{individual}.final.cram" % DATA_DIR
+    input:  "%s/{individual}%s" % (DATA_DIR, SUFFIX)
     output:  "%s/{individual}.dv.cpu.gvcf.gz" % DV_OUT
     params: prefix="{individual}"
     shell: """
     export PATH=/opt/deepvariant/bin:$PATH
-    mkdir -p dv_log
+    mkdir -p /dnv_wf_cpu/dv_log
     mkdir -p {DV_OUT}
-    run_deepvariant --model_type=WGS --ref={REFERENCE} --reads={input} --output_vcf={DV_OUT}/{params.prefix}.cpu.dv.vcf.gz --output_gvcf={output} --num_shards=32 --log_dir=dv_log
-   touch {output}.tbi
-    
+    if [ {CLUSTER} -ne 1 ]
+    then
+        run_deepvariant --model_type=WGS --ref={REFERENCE} --reads={input} --output_vcf={DV_OUT}/{params.prefix}.cpu.dv.vcf.gz --output_gvcf={output} --num_shards=32 --log_dir=dv_log
+    else
+        run_deepvariant --model_type=WGS --ref={REFERENCE} --reads={input} --output_vcf={DV_OUT}/{params.prefix}.cpu.dv.vcf.gz --output_gvcf={output} --num_shards=$(nproc) --log_dir=dv_log
+    fi
+    touch {output}.tbi
+
     """
 rule glnexus_hc:
     input: glnexus_intro_hc
@@ -145,8 +158,16 @@ rule glnexus_hc:
     shell: """
     mkdir -p {GLNEXUS_FILE_HC_BCF}
     export PATH=/miniconda3/bin:$PATH
-    /glnexus_cli --config gatk --mem-gbytes 128  --dir {params.prefix}_hc {input} > {output} 
-    rm -r {params.prefix}_hc
+    if [ {CLUSTER} -ne 1 ]
+    then
+        /glnexus_cli --config gatk --dir /dnv_wf_cpu/{params.prefix}_hc {input} > {output}
+    else
+        mem=$( free -g | awk 'NR==2{{printf "%sg", $4 }}' )
+        echo $mem
+        /glnexus_cli --config gatk --mem-gbytes $mem --dir /dnv_wf_cpu/{params.prefix}_hc {input} > {output}
+
+    fi
+    rm -r /dnv_wf_cpu/{params.prefix}_hc
     """
 rule glnexus_dv:
     input: glnexus_intro_dv
@@ -154,8 +175,16 @@ rule glnexus_dv:
     params: prefix="{family}"
     shell: """
     mkdir -p {GLNEXUS_FILE_DV_BCF}
-    /glnexus_cli --config DeepVariant --mem-gbytes 128  --dir {params.prefix}_dv {input} > {output} 
-    rm -r {params.prefix}_dv
+    if [ {CLUSTER} -ne 1 ]
+    then
+        /glnexus_cli --config DeepVariant --dir /dnv_wf_cpu/{params.prefix}_dv {input} > {output}
+    else
+        mem=$( free -g | awk 'NR==2{{printf "%sg", $4 }}' )
+        echo $mem
+        /glnexus_cli --config DeepVariant --mem-gbytes $mem --dir /dnv_wf_cpu/{params.prefix}_dv {input} > {output}
+    
+    fi
+    rm -r /dnv_wf_cpu/{params.prefix}_dv
     """
 
 rule dvProcess:
@@ -203,16 +232,16 @@ rule grabFamilies_DV:
     #Searches family trio .vcf file for possible denovo varints, adding the label TRANSMITTED=no;INH=denovo_pro if the variant is a candidate.
     #It then pulls out the varints with that label into a separate .vcf file.
 
-    python2 naive_inheritance_trio_py2.py  {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus.dv.vcf.gz > {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus_denovo.dv.vcf
+    python2 /dnv_wf_cpu/naive_inheritance_trio_py2.py  {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus.dv.vcf.gz > {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus_denovo.dv.vcf
     grep '#' {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus_denovo.dv.vcf > {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus_denovo_actual.dv.vcf
     grep -w 'TRANSMITTED=no;INH=denovo_pro' {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus_denovo.dv.vcf >> {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus_denovo_actual.dv.vcf
     bgzip {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus_denovo_actual.dv.vcf
     tabix {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus_denovo_actual.dv.vcf.gz
 
 
-    rm {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus_denovo.dv.vcf
 
-    
+
+    ls {output}
     """
 
 rule grabFamilies_HC:
@@ -236,13 +265,13 @@ rule grabFamilies_HC:
 
 
     echo "Naive search HC"
-    python2 naive_inheritance_trio_py2.py  {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus.hc.vcf.gz > {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus_denovo.hc.vcf
+    python2 /dnv_wf_cpu/naive_inheritance_trio_py2.py  {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus.hc.vcf.gz > {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus_denovo.hc.vcf
 
     grep '#' {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus_denovo.hc.vcf > {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus_denovo_actual.hc.vcf
     grep -w 'TRANSMITTED=no;INH=denovo_pro' {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus_denovo.hc.vcf >> {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus_denovo_actual.hc.vcf
     bgzip {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus_denovo_actual.hc.vcf
     tabix {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus_denovo_actual.hc.vcf.gz
-    rm {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus_denovo.hc.vcf
+
     """
 
 rule combinedAndFilter:
@@ -267,22 +296,24 @@ rule combinedAndFilter:
     echo 'Set up filter script'
     actual=$( cat {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus.family.combined_intersection.vcf | grep '#' | tail -n 1 | cut -f 10-13 )
     echo $actual
-   
     temp=$( grep {params.prefix} {FAMILY_FILE} )
     temp=$( echo $temp | cut -d',' -f 1-3 )
     trio=$( echo $temp | tr ',' ' ')
     echo $trio
     echo "Run filter script"
     #Python script that filters for parents with no alt allele, depth of set value, GQ of set value, and allele balance of .25
-    python filter_glnexuscombined.py {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus.family.combined_intersection.vcf $trio $actual {params.gq} {params.depth}
+    python /dnv_wf_cpu/filter_glnexuscombined.py {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus.family.combined_intersection.vcf $trio $actual {params.gq} {params.depth}
 
     echo "Make position file"
     zcat {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus_denovo_actual.combined.vcf.gz | grep '#' > {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus.family.combined_intersection_filtered_gq_{params.gq}_depth_{params.depth}_position.vcf
     echo "Make CpG file"
     zcat {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus_denovo_actual.combined.vcf.gz | grep '#' > {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus.family.combined_intersection_filtered_gq_{params.gq}_depth_{params.depth}_position_all.vcf
     echo "Filter by position"
-    bedtools intersect -v -a {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus.family.combined_intersection_filtered_gq_{params.gq}_depth_{params.depth}.vcf -b {REGIONS}/LCR-hs38-5bp-buffer.bed.gz    {REGIONS}/hg38_centromeres_09252018.bed.gz  {REGIONS}/recent_repeat_b38-5bp-buffer.bed.gz  >> {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus.family.combined_intersection_filtered_gq_{params.gq}_depth_{params.depth}_position.vcf
-    bedtools intersect -a {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus.family.combined_intersection_filtered_gq_{params.gq}_depth_{params.depth}_position.vcf -b {REGIONS}/CpG_sites_sorted_b38.bed.gz >> {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus.family.combined_intersection_filtered_gq_{params.gq}_depth_{params.depth}_position_all.vcf
+
+    if [ "{REGIONS}" != "1" ]
+    then
+        bedtools intersect -v -a {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus.family.combined_intersection_filtered_gq_{params.gq}_depth_{params.depth}.vcf -b {REGIONS}/LCR-hs38-5bp-buffer.bed.gz    {REGIONS}/hg38_centromeres_09252018.bed.gz  {REGIONS}/recent_repeat_b38-5bp-buffer.bed.gz  >> {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus.family.combined_intersection_filtered_gq_{params.gq}_depth_{params.depth}_position.vcf
+        bedtools intersect -a {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus.family.combined_intersection_filtered_gq_{params.gq}_depth_{params.depth}_position.vcf -b {REGIONS}/CpG_sites_sorted_b38.bed.gz >> {OUT_DIR}/{params.prefix}/{params.prefix}.glnexus.family.combined_intersection_filtered_gq_{params.gq}_depth_{params.depth}_position_all.vcf
+    fi
     ls {output}
     """
-
