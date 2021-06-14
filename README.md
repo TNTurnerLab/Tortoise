@@ -1,6 +1,5 @@
-# dnv_workflow_cpu
-
-Maintainer:  Jeffrey Ng
+# *de novo* variant calling workflow, CPU version
+Maintainer: Jeffrey Ng
 
 Work in progress!
 
@@ -10,7 +9,7 @@ Testing progress:
 
 Docker -> builds
 
-Workflow -> Finish running, fixed errors. 
+Workflow -> Finish running, fixed errors.
 
 GPU comparison -> High levels of overlap with GPU output
 
@@ -22,8 +21,14 @@ Add more user options for testing (regions not included), pathway checks for con
 
 Need a local version!! -> working.
 
+Finish readme plus others test -> ongoing
+
 ============ -> README START
-# *de novo* variant calling workflow
+
+
+### Developed and maintained by Jeffrey Ng
+### Washington University in St. Louis Medical School
+### Turner Lab
 
 This pipeline takes in aligned, short read Illumina data, as cram files, for a family trio and reports *de novo* variants in a vcf file.  This is a modified version pipeline run from Ng et al. 2021, making use of the open source, CPU versions of the programs that were GPU accelerated in the paper. 
 
@@ -49,7 +54,41 @@ wget -q ftp://ftp.sra.ebi.ac.uk/vol1/run/ERR398/ERR3989342/NA12892.final.cram
 wget -q ftp://ftp.sra.ebi.ac.uk/vol1/run/ERR398/ERR3989342/NA12892.final.cram.crai
 ```
 
+
 Example .bam files are found in the test_code folder for testing purposes.
+
+
+To download our GRCh38 reference, please use the following:
+```
+wget http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/GRCh38_reference_genome/GRCh38_full_analysis_set_plus_decoy_hla.fa
+```
+
+
+If you would like to download the RepeatMasker files, please use the following links:
+
+#### Centromeres
+```
+wget https://de.cyverse.org/dl/d/B42A0F3D-C402-4D5F-BBD5-F0E61BE2F4AC/hg38_centromeres_09252018.bed.gz
+https://de.cyverse.org/dl/d/37B13DB5-0478-4C4B-B18D-33AFB742E782/hg38_centromeres_09252018.bed.gz.tbi
+```
+
+#### LCR plus 5 bp buffer
+```
+https://de.cyverse.org/dl/d/870755FF-CD04-4010-A1EC-658D7E1151EF/LCR-hs38-5bp-buffer.bed.gz
+https://de.cyverse.org/dl/d/01D038EA-51CC-4750-9814-0BB3784E808E/LCR-hs38-5bp-buffer.bed.gz.tbi
+```
+
+#### Recent repeats plus 5 bp buffer
+```
+https://de.cyverse.org/dl/d/185DA9BC-E13D-429B-94EA-632BDAB4F8ED/recent_repeat_b38-5bp-buffer.bed.gz
+https://de.cyverse.org/dl/d/4A6AF6EF-D3F0-4339-9B8E-3E9E83638F00/recent_repeat_b38-5bp-buffer.bed.gz.tbi
+```
+
+#### CpG Locations
+```
+https://de.cyverse.org/dl/d/786D1640-3A26-4A1C-B96F-425065FBC6B7/CpG_sites_sorted_b38.bed.gz
+https://de.cyverse.org/dl/d/713F020E-246B-4C47-BBC3-D4BB86BFB6E9/CpG_sites_sorted_b38.bed.gz.tbi
+```
 
 Before running, please make any necessary changes to these options below in the config.json. 
 
@@ -59,9 +98,6 @@ Before running, please make any necessary changes to these options below in the 
 * depth_value: 10 *Depth value filter*
 * suffix: "\_test.bam" *Suffix of your data files.  Assumes input files are \<sample\_name\>\<suffix\>* 
 
-**Note for RepeatMasker files**
-
-We filter *de novo* mutations by regions using files obtained from RepeatMasker.  We filter low complexity regions, recent repeats, centromeme regions, and CpG sites.  If you would like to use this option, you'll need to download the files yourself. 
 
 ## Running
 
@@ -106,7 +142,7 @@ Your main output file is:
 
 We have seen that our CPU pipeline shows high levels of overlap between the discovered number of *de novo* variants and can be used as an accurate alternative to the GPU accelerated version of the pipeline.  
 
-Here are two trios,NA12878 and NA12940, and the comparison of the number of *de novo* variants.
+Here are two trios, NA12878 and NA12940, and the comparison of the number of *de novo* variants.
 
 ### NA12878
 
@@ -133,11 +169,28 @@ Run time information can be found within the docs folder.
   * tabix 
   * vcflib
   * openjdk 8
+
+## Docker build instructions
   
-* If you  want to build the docker image from the Dockerfile, you'll need to be inside the DeepVariant code base (we build DeepVariant from source).  The download link can be found [here.](https://github.com/google/deepvariant/archive/refs/tags/v0.10.0.zip)
-* You can then copy our dockerfile into the folder and change the settings.sh file and change the export DV_USE_GCP_OPTIMIZED_TF_WHL to 0
+* If you  want to build the docker image from the Dockerfile, you'll need to be inside the DeepVariant code base (we build DeepVariant from v0.10.0 source).  
+```
+wget https://github.com/google/deepvariant/archive/refs/tags/v0.10.0.zip
+unzip v0.10.0.zip
+```
+
+* You can then copy our dockerfile into this folder
+```
+cp dnv_workflow_cpu/dockerfiles/Dockerfile deepvariant-v-0.10.0
+``` 
+
+* Lastly, go inside the DeepVariant folder and change the settings.sh file and change the export DV_USE_GCP_OPTIMIZED_TF_WHL to 0, this can be found on line 91.
 
 ```
 export DV_USE_GCP_OPTIMIZED_TF_WHL="${DV_USE_GCP_OPTIMIZED_TF_WHL:-0}"
 ```
+* Now you can build the docker image from inside the DeepVariant folder.
 
+
+```
+docker build deepvariant-0.10.0/
+```
