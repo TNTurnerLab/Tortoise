@@ -1,0 +1,20 @@
+{
+  "reference": "/reference/GRCh38_full_analysis_set_plus_decoy_hla.fa",
+  "family_file": "/dnv_wf_cpu/dnv_wf_test.txt",
+  "glnexus_file_dv_vcf": "/dnv_wf_cpu/dv_vcf",
+  "glnexus_file_hc_vcf": "/dnv_wf_cpu/hc_vcf",
+  "glnexus_file_dv_bcf": "/dnv_wf_cpu/dv_bcf",
+  "glnexus_file_hc_bcf": "/dnv_wf_cpu/hc_bcf",
+  "regions": "/region" ,
+  "cluster": 0,
+  "gq_value": 20,
+  "depth_value":10,
+  "gatk_out":"/dnv_wf_cpu/gatk_out",
+  "dv_out":"/dnv_wf_cpu/dv_out",
+  "data_dir":"/data_dir/",
+  "out_dir": "/dnv_wf_cpu/out",
+  "suffix": "_test_smaller.bam"
+}
+
+
+
