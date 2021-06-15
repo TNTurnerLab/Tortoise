@@ -13,7 +13,6 @@ GLNEXUS_FILE_DV_VCF=config["glnexus_file_dv_vcf"]
 GLNEXUS_FILE_HC_VCF=config["glnexus_file_hc_vcf"]
 DATA_DIR=config["data_dir"]
 REGIONS=config["regions"]
-CLUSTER=config["cluster"]
 GQ_VALUE=config["gq_value"]
 DEPTH_VALUE=config["depth_value"]
 OUT_DIR=config["out_dir"]
@@ -117,20 +116,14 @@ rule all:
 rule gatk:
     input:  "%s/{individual}%s" % (DATA_DIR, SUFFIX)
     output:  "%s/{individual}.gatk.cpu.g.vcf.gz" % GATK_OUT
-    params: prefix="{individual}", clus="%s" % CLUSTER
+    params: prefix="{individual}"
     shell: """
     export PATH=/miniconda3/bin:$PATH
-    echo {params.clus}
+  
     mkdir -p {GATK_OUT}
-    if [ {params.clus} -ne 1 ]
-    then
-        gatk --java-options "-Xmx64g" HaplotypeCaller -R {REFERENCE} -I {input} -O {output} --standard-min-confidence-threshold-for-calling 30  -L chr1 -L chr2 -L chr3 -L chr4 -L chr5 -L chr6 -L chr7 -L chr8 -L chr9 -L chr10 -L chr11 -L chr12 -L chr13 -L chr14 -L chr15 -L chr16 -L chr17 -L chr18 -L chr19 -L chr20 -L chr21 -L chr22 -L chrX -L chrY -ERC GVCF
-    else
-        mem=$( free -g | awk 'NR==2{{printf "%sg", $4 }}' )
-        echo $mem
-        gatk --java-options "-Xmx$mem" HaplotypeCaller -R {REFERENCE} -I {input} -O {output} --standard-min-confidence-threshold-for-calling 30  -L chr1 -L chr2 -L chr3 -L chr4 -L chr5 -L chr6 -L chr7 -L chr8 -L chr9 -L chr10 -L chr11 -L chr12 -L chr13 -L chr14 -L chr15 -L chr16 -L chr17 -L chr18 -L chr19 -L chr20 -L chr21 -L chr22 -L chrX -L chrY -ERC GVCF
-
-    fi
+    
+    gatk --java-options "-Xmx64g" HaplotypeCaller -R {REFERENCE} -I {input} -O {output} --standard-min-confidence-threshold-for-calling 30  -L chr1 -L chr2 -L chr3 -L chr4 -L chr5 -L chr6 -L chr7 -L chr8 -L chr9 -L chr10 -L chr11 -L chr12 -L chr13 -L chr14 -L chr15 -L chr16 -L chr17 -L chr18 -L chr19 -L chr20 -L chr21 -L chr22 -L chrX -L chrY -ERC GVCF
+    
     touch {output}.tbi
     """
 
@@ -142,12 +135,8 @@ rule deepvariant:
     export PATH=/opt/deepvariant/bin:$PATH
     mkdir -p /dnv_wf_cpu/dv_log
     mkdir -p {DV_OUT}
-    if [ {CLUSTER} -ne 1 ]
-    then
-        run_deepvariant --model_type=WGS --ref={REFERENCE} --reads={input} --output_vcf={DV_OUT}/{params.prefix}.cpu.dv.vcf.gz --output_gvcf={output} --num_shards=32 --log_dir=dv_log
-    else
-        run_deepvariant --model_type=WGS --ref={REFERENCE} --reads={input} --output_vcf={DV_OUT}/{params.prefix}.cpu.dv.vcf.gz --output_gvcf={output} --num_shards=$(nproc) --log_dir=dv_log
-    fi
+    run_deepvariant --model_type=WGS --ref={REFERENCE} --reads={input} --output_vcf={DV_OUT}/{params.prefix}.cpu.dv.vcf.gz --output_gvcf={output} --num_shards=32 --log_dir=dv_log
+   
     touch {output}.tbi
 
     """
@@ -158,15 +147,8 @@ rule glnexus_hc:
     shell: """
     mkdir -p {GLNEXUS_FILE_HC_BCF}
     export PATH=/miniconda3/bin:$PATH
-    if [ {CLUSTER} -ne 1 ]
-    then
-        /glnexus_cli --config gatk --dir /dnv_wf_cpu/{params.prefix}_hc {input} > {output}
-    else
-        mem=$( free -g | awk 'NR==2{{printf "%sg", $4 }}' )
-        echo $mem
-        /glnexus_cli --config gatk --mem-gbytes $mem --dir /dnv_wf_cpu/{params.prefix}_hc {input} > {output}
-
-    fi
+    /glnexus_cli --config gatk --dir /dnv_wf_cpu/{params.prefix}_hc {input} > {output}
+    
     rm -r /dnv_wf_cpu/{params.prefix}_hc
     """
 rule glnexus_dv:
@@ -175,15 +157,9 @@ rule glnexus_dv:
     params: prefix="{family}"
     shell: """
     mkdir -p {GLNEXUS_FILE_DV_BCF}
-    if [ {CLUSTER} -ne 1 ]
-    then
-        /glnexus_cli --config DeepVariant --dir /dnv_wf_cpu/{params.prefix}_dv {input} > {output}
-    else
-        mem=$( free -g | awk 'NR==2{{printf "%sg", $4 }}' )
-        echo $mem
-        /glnexus_cli --config DeepVariant --mem-gbytes $mem --dir /dnv_wf_cpu/{params.prefix}_dv {input} > {output}
+    export PATH=/miniconda3/bin:$PATH
+    /glnexus_cli --config DeepVariant --dir /dnv_wf_cpu/{params.prefix}_dv {input} > {output}
     
-    fi
     rm -r /dnv_wf_cpu/{params.prefix}_dv
     """
 
