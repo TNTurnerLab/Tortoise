@@ -37,13 +37,13 @@ This pipeline takes in aligned, short read Illumina data, as cram or bam files, 
 
 ## Input
 
-Two main input:
+Two main inputs:
 
-1) .cram files for trio(s)
-2) A comma delimited text file filled with trios in the following order:  Father, Mother, Child
-3) The snake config file
+1) .bam or .cram files for trio(s)
+2) A comma delimited text file filled with trios in the following order:  Father,Mother,Child
 
-To download 30x WGS NA12878 trio .cram files from the 1000 Genomes Project to test the workflow, you can find the download links below:
+
+You may download the full 30x WGS NA12878 trio .cram files from the 1000 Genomes Project to test the workflow, links found below:
 
 ```
 wget -q ftp://ftp.sra.ebi.ac.uk/vol1/run/ERR323/ERR3239334/NA12878.final.cram
@@ -55,14 +55,13 @@ wget -q ftp://ftp.sra.ebi.ac.uk/vol1/run/ERR398/ERR3989342/NA12892.final.cram.cr
 ```
 
 
-Example .bam files are found in the test_code folder for testing purposes.
+Alternatively, small example .bam files can found in the `test_code` folder for faster testing purposes.  These .bam files were created from the 30x .cram files above, isolated to a small region of chromosome 5.  
 
 
-To download our GRCh38 reference, please use the following:
+To download the GRCh38 reference, please use the following:
 ```
 wget -q http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/GRCh38_reference_genome/GRCh38_full_analysis_set_plus_decoy_hla.fa
 ```
-
 
 If you would like to download the RepeatMasker files, please use the following links:
 
@@ -101,26 +100,27 @@ Before running, please make any necessary changes to these options below in the 
 
 ## Running
 
-All software dependencies are installed in a docker image that we provide for you at `tnturnerlab/dnv_wf_cpu`
-We also provide the Dockerfile, if you would like to make modifications.  [Please see below](#docker-build-instructions) to find instructions on how the docker image was built.  
+All software dependencies are installed in a docker image that you pull at `tnturnerlab/dnv_wf_cpu`
+We also provide the Dockerfile if you would like to make modifications.  [Please see below](#docker-build-instructions) to find instructions on how the docker image was built.  
 
 ### Running on a LSF server
 
-First, set up your LSF_DOCKER_VOLUMES:
+First, set up the LSF_DOCKER_VOLUMES:
 ```
 export LSF_DOCKER_VOLUMES="/path/to/crams/:/data_dir /path/to/reference:/reference /path/to/this/git/repo/:/dnv_wf_cpu/ /path/to/RepeatMasker/files:/region"
 ```
 
 Then run this command:
 ```
-bsub -q general -oo %J.main.log -R 'span[hosts=1] rusage[mem=5GB]' -a 'docker(tnturnerlab/dnv_wf_cpu)' /miniconda3/bin/snakemake -j 6 --cluster-config cluster_config.json --cluster "bsub -q tychele -R 'span[hosts=1] rusage[mem={cluster.mem}]' -n {cluster.n} -M {cluster.mem} -a 'docker(tnturnerlab/dnv_wf_cpu)' -M {cluster.mem} -oo log/%J.log.txt" -s gatk_deep_glnexus_qol.snake -k --rerun-incomplete -w 120 
+bsub -q general -oo %J.main.log -R 'span[hosts=1] rusage[mem=5GB]' -a 'docker(tnturnerlab/dnv_wf_cpu)' /miniconda3/bin/snakemake -j 6 --cluster-config cluster_config.json --cluster "bsub -q general -R 'span[hosts=1] rusage[mem={cluster.mem}]' -n {cluster.n} -M {cluster.mem} -a 'docker(tnturnerlab/dnv_wf_cpu)' -M {cluster.mem} -oo %J.log.txt" -s gatk_deep_glnexus_qol.snake -k --rerun-incomplete -w 120 
 ```
 
 ### Running locally
 
-This code can be run locally.  It will use all possible CPU cores, as well as whatever RAM is free at run time.
+This code can be run locally.  It will use all possible CPU cores and a hardcoded value for 8GB RAM.  Please ensure your computer has at least this before running.   
 
 To run this locally, please run this command:
+
 ```
 docker run -v "/path/to/crams/:/data_dir" -v "/path/to/reference:/reference" -v "/path/to/this/git/repo/:/dnv_wf_cpu/" -v "/path/to/RepeatMasker/files:/region" tnturnerlab/dnv_wf_cpu /miniconda3/bin/snakemake -s /dnv_wf_cpu/gatk_deep_glnexus_wf_local.snake -k --rerun-incomplete -w 120
 ```
@@ -139,10 +139,10 @@ After the run, you'll find two main output files found in the folder called `out
 
 Your main output file is:
 * <child_name>.glnexus.family.combined_intersection_filtered_gq_<gq_value>\_depth_<depth_value>\.vcf
-  * This file holds *de novo* variants that are not filtered by regions mentioned above.  The other two files will just contain the header file, but will be empty otherwise.
+  * This file holds *de novo* variants that are not filtered by regions mentioned above.  The other two files will just contain the header file but will be empty otherwise.
 
 
-When running the small test bams found in this git repo, you should get these two DNVs in either NA12878.glnexus.family.combined_intersection_filtered_gq_20_depth_10.vcf or NA12878.glnexus.family.combined_intersection_filtered_gq_20_depth_10_position.vcf:
+When running the small test bams, you will get find these two DNVs in both `NA12878.glnexus.family.combined_intersection_filtered_gq_20_depth_10.vcf` or `NA12878.glnexus.family.combined_intersection_filtered_gq_20_depth_10_position.vcf`:
 
 ```
 chr5	51158671	chr5_51158671_A_G	A	G	43	.	AC=1;AF=0.167;AN=6;INH=denovo_pro;TRANSMITTED=no;set=Intersection	GT:AD:DP:GQ:PL:RNC	0/1:20,10:30:44:43,0,58	0/0:26,0:26:50:0,123,1229	0/0:19,0:19:50:0,81,809
@@ -167,9 +167,9 @@ Run time information can be found within the docs folder.  Run times based on ru
 
 
 
-## Software Requiments
+## Software Requirements
 
-* All software requirments are built in to the docker image.  The  software packages built are as follows:
+* All software requirements are built in to the docker image.  The  software packages built are as follows:
   * DeepVariant v0.10.0
   * GATK v4.1.0.0
   * GLnexus v1.2.6
@@ -186,24 +186,27 @@ Run time information can be found within the docs folder.  Run times based on ru
 ## Docker build instructions
   
 * If you  want to build the docker image from the Dockerfile, you'll need to be inside the DeepVariant code base (we build DeepVariant from v0.10.0 source).  
+
 ```
 wget https://github.com/google/deepvariant/archive/refs/tags/v0.10.0.zip
 unzip v0.10.0.zip
 ```
 
-* You can then copy our dockerfile into this folder
+* You can then copy our Dockerfile into this folder
+
 ```
 cp dnv_workflow_cpu/dockerfiles/Dockerfile deepvariant-0.10.0
 ``` 
 
-* Lastly, go inside the DeepVariant folder and change the settings.sh file and change the export DV_USE_GCP_OPTIMIZED_TF_WHL to 0, this can be found on line 91.
+* Lastly, go inside the DeepVariant folder and change the settings.sh file and change the export DV_USE_GCP_OPTIMIZED_TF_WHL to 0, this can be found on line 91.  The line should look like this:
 
 ```
 export DV_USE_GCP_OPTIMIZED_TF_WHL="${DV_USE_GCP_OPTIMIZED_TF_WHL:-0}"
 ```
-* Now you can build the docker image from inside the DeepVariant folder.
 
+* Now you can build the docker image from inside the DeepVariant folder.
 
 ```
 docker build deepvariant-0.10.0/
 ```
+
