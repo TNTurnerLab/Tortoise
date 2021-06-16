@@ -164,7 +164,7 @@ Here are two trios, NA12878 and NA12940, and the comparison of the number of *de
 
 ![NA19240 comparison](https://github.com/TNTurnerLab/dnv_workflow_cpu/blob/main/docs/GPU_vs_CPU_NA19240.png)
 
-Run time information can be found within the docs folder.  Run times were run on a LSF based HCP 
+Run time information can be found within the docs folder.  Run times based on runs using a LSF based HPC cluster, requirements can be found in cluster_config.json.   
 
 
 
