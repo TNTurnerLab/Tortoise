@@ -179,8 +179,8 @@ Run time information can be found within the docs folder.  Run times based on ru
   * BCFtools v1.9
   * SAMtools v1.9
   * bedtools v2.29.2
-  * tabix 
-  * vcflib
+  * tabix v1.9
+  * vcflib v1.0.0-rc0-333-g5b0f-dirty
   * openjdk 8
 
 ## Docker build instructions
