@@ -113,8 +113,7 @@ export LSF_DOCKER_VOLUMES="/path/to/crams/:/data_dir /path/to/reference:/referen
 
 Then run this command:
 ```
-bsub -q general -oo %J.main.log -R 'span[hosts=1] rusage[mem=5GB]' -a 'docker(tnturnerlab/dnv_wf_cpu)' /miniconda3/bin/snakemake -j 6 --cluster-config cluster_config.json --cluster "bsub -q tychele -R 'span[hosts=1] rusage[mem={cluster.mem}]' -n {cluster.n} -M {cluster.mem} -a 'docker(tnturnerlab
-/dnv_wf_cpu)' -M {cluster.mem} -oo log/%J.log.txt" -s gatk_deep_glnexus_qol.snake -k --rerun-incomplete -w 120 
+bsub -q general -oo %J.main.log -R 'span[hosts=1] rusage[mem=5GB]' -a 'docker(tnturnerlab/dnv_wf_cpu)' /miniconda3/bin/snakemake -j 6 --cluster-config cluster_config.json --cluster "bsub -q tychele -R 'span[hosts=1] rusage[mem={cluster.mem}]' -n {cluster.n} -M {cluster.mem} -a 'docker(tnturnerlab/dnv_wf_cpu)' -M {cluster.mem} -oo log/%J.log.txt" -s gatk_deep_glnexus_qol.snake -k --rerun-incomplete -w 120 
 ```
 
 ### Running locally
