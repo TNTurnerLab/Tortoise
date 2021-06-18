@@ -61,6 +61,9 @@ Alternatively, small example .bam files can found in the `test_code` folder for 
 To download the GRCh38 reference, please use the following:
 ```
 wget -q http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/GRCh38_reference_genome/GRCh38_full_analysis_set_plus_decoy_hla.fa
+wget -q http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/GRCh38_reference_genome/GRCh38_full_analysis_set_plus_decoy_hla.fa.fai
+wget -q http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/GRCh38_reference_genome/GRCh38_full_analysis_set_plus_decoy_hla.dict
+
 ```
 
 If you would like to download the RepeatMasker files, please use the following links:
