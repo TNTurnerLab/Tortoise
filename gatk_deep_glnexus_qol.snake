@@ -147,7 +147,7 @@ rule glnexus_hc:
     shell: """
     mkdir -p {GLNEXUS_FILE_HC_BCF}
     export PATH=/miniconda3/bin:$PATH
-    /glnexus_cli --config gatk --dir /dnv_wf_cpu/{params.prefix}_hc {input} > {output}
+    /glnexus_cli --config gatk --mem-gbytes 64 --dir /dnv_wf_cpu/{params.prefix}_hc {input} > {output}
     
     rm -r /dnv_wf_cpu/{params.prefix}_hc
     """
@@ -158,7 +158,7 @@ rule glnexus_dv:
     shell: """
     mkdir -p {GLNEXUS_FILE_DV_BCF}
     export PATH=/miniconda3/bin:$PATH
-    /glnexus_cli --config DeepVariant --dir /dnv_wf_cpu/{params.prefix}_dv {input} > {output}
+    /glnexus_cli --config DeepVariant --mem-gbytes 64 --dir /dnv_wf_cpu/{params.prefix}_dv {input} > {output}
     
     rm -r /dnv_wf_cpu/{params.prefix}_dv
     """
