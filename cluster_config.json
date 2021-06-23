@@ -7,12 +7,12 @@
     "gatk":
     {
         "n":2,
-        "mem": "70G"
+        "mem": "40G"
     },
     "deepvariant":
     {
         "n":32,
-        "mem": "52G"
+        "mem": "64G"
     },
     "grabFamilies_DV":
     {
