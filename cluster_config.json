@@ -32,11 +32,11 @@
     "glnexus_hc":
     {
         "n":32,
-        "mem": "128G"
+        "mem": "70G"
     },
     "glnexus_dv":
     {
         "n":32,
-        "mem": "128G"
+        "mem": "70G"
     }
 }
