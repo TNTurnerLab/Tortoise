@@ -1,4 +1,4 @@
-# *de novo* variant calling workflow, CPU version
+# Tortoise:  *de novo* variant calling workflow, CPU version
  
 ### Developed and maintained by Jeffrey Ng
 ### Washington University in St. Louis Medical School
@@ -119,23 +119,6 @@ When running the small test bams, you will find these two DNVs in both `NA12878.
 chr5 	51158671    	chr5_51158671_A_G A      	G     	43    	.        	AC=1;AF=0.167;AN=6;INH=denovo_pro;TRANSMITTED=no;set=Intersection  	GT:AD:DP:GQ:PL:RNC     	0/1:20,10:30:44:43,0,58        	0/0:26,0:26:50:0,123,1229 	0/0:19,0:19:50:0,81,809
 chr5 	52352927    	chr5_52352927_T_C  T      	C     	56    	.        	AC=1;AF=0.167;AN=6;INH=denovo_pro;TRANSMITTED=no;set=Intersection  	GT:AD:DP:GQ:PL:RNC     	0/1:17,15:32:55:56,0,61        	0/0:28,0:28:50:0,102,1019 	0/0:26,0:26:50:0,114,1139
 ```
- 
-## GPU vs CPU workflow output comparison
- 
-We have seen that our CPU pipeline shows high levels of overlap between the discovered number of *de novo* variants and can be used as an accurate alternative to the GPU accelerated version of the pipeline detailed in Ng et al. 2021.  
- 
-Here are two trios, NA12878 and NA12940, and the comparison of the number of *de novo* variants found.
- 
-### NA12878
- 
-![NA12878 comparison](https://github.com/TNTurnerLab/dnv_workflow_cpu/blob/main/docs/GPU_vs_CPU_NA12878.png)
- 
-### NA19240
- 
-![NA19240 comparison](https://github.com/TNTurnerLab/dnv_workflow_cpu/blob/main/docs/GPU_vs_CPU_NA19240.png)
- 
-Run time information can be found within the docs folder.  Run times shown are from runs using a LSF based HPC cluster, requirements can be found in cluster_config.json.   
-
 
 ## Software Requirements
  
