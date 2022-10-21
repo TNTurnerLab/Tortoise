@@ -104,7 +104,7 @@ docker run -v "/path/to/crams/:/data_dir" -v "/path/to/reference:/reference" -v 
 After the run, you'll find two main output files found in the folder called `out`:
 * <child_name>.glnexus.family.combined_intersection_filtered_gq_<gq_value>\_depth_<depth_value>\_position.vcf
     * This file holds the *de novo* variants
-* <child_name>.glnexus.family.combined_intersection_filtered_gq_<gq_value>\_depth_<depth_value>\_all.vcf
+* <child_name>.glnexus.family.combined_intersection_filtered_gq_<gq_value>\_depth_<depth_value>\_position_all.vcf
     * This file holds the *de novo* variants specifically within CpG regions.  
  
 ### Without the region option
