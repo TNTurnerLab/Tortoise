@@ -2,18 +2,19 @@
 # Filter GLnexus de novo vcf files
 # Jeffrey Ng
 # Laboratory of Tychele N. Turner, Ph.D.
-# Last update: September 16, 2020
+# Last update: October 24, 2022
 
 import os
 from argparse import ArgumentParser
+from re import I
 
 
-def checkParents(parent,gq_filter,depth_filter):
+def checkParents(parent,gq_filter,depth_filter,dp_i,gq_i,ad_i):
     #parent=parent.split(',')
     #print(parent)
-    depth=int(parent[1])
-    allref=int(parent[0].split(',')[1])
-    gq=int(parent[2])
+    depth=int(parent[dp_i])
+    allref=int(parent[ad_i].split(',')[1])
+    gq=int(parent[gq_i])
 
     if depth >= depth_filter and allref ==0 and gq>gq_filter:
     #    print(depth,allref,gq,'parent')
@@ -21,11 +22,11 @@ def checkParents(parent,gq_filter,depth_filter):
     else:
         return(0)
 
-def checkKid(kid,gq_filter,depth_filter):
-    depth=int(kid[1])
-    ref=int(kid[0].split(',')[1])
+def checkKid(kid,gq_filter,depth_filter,dp_i,gq_i,ad_i):
+    depth=int(kid[dp_i])
+    ref=int(kid[ad_i].split(',')[1])
     #total=int(depth+ref)
-    gq =int(kid[2])
+    gq =int(kid[gq_i])
 
     if depth>=depth_filter and gq > gq_filter:
         #total=int(depth)+int(ref)
@@ -62,7 +63,7 @@ args = parser.parse_args()
 holdme=[]
 header=[]
 file=args.file
-name=file.strip().split('.')[0]
+name=file.strip().split('.glnexus.family.combined_intersection.vcf')[0]
 fi=checkPos(args.f,args.first,args.second,args.third)
 mi=checkPos(args.m,args.first,args.second,args.third)
 ci=checkPos(args.c,args.first,args.second,args.third)
@@ -75,16 +76,33 @@ with open(file) as input:
         if not line.startswith('#'):
             data=line.strip().split('\t')
             samples=data[9:]
-            father=samples[fi].split(':')[1:4]
-            mother=samples[mi].split(':')[1:4]
-            kid=samples[ci].split(':')[1:4]
+            father=samples[fi].split(':')
+            mother=samples[mi].split(':')
+            kid=samples[ci].split(':')
+            index=data[8].split(':')
+            dp=0
+            ad=0
+            gq=0
+            #GT:DP:AD:GQ:PL:RNC
+            i=0
+            while i < len(index):
+                if index[i] =='DP':
+                    dp=i
+                elif index[i]=='AD':
+                    ad=i
+                elif index[i]=='GQ':
+                    gq=i
+                i+=1
+            #print(dp,ad,gq)
             m=0
             f=0
             #print(father,data)
-            if len(father[0].split(','))==2 and len(mother[0].split(','))==2 and len(kid[0].split(','))==2:
-                f=checkParents(father,int(args.gq_filter),int(args.depth_filter))
-                m=checkParents(mother,int(args.gq_filter),int(args.depth_filter))
-                k=checkKid(kid,int(args.gq_filter),int(args.depth_filter))
+           # print(father[ad])
+            if len(father[ad].split(','))==2 and len(mother[ad].split(','))==2 and len(kid[ad].split(','))==2:
+                #print('hello')
+                f=checkParents(father,int(args.gq_filter),int(args.depth_filter),dp,gq,ad)
+                m=checkParents(mother,int(args.gq_filter),int(args.depth_filter),dp,gq,ad)
+                k=checkKid(kid,int(args.gq_filter),int(args.depth_filter),dp,gq,ad)
                 #print(f,m)
             if f==1 and m==1 and k==1:
                 holdme.append(line)
@@ -95,4 +113,3 @@ with open(name+'.glnexus.family.combined_intersection_filtered_gq_'+str(args.gq_
         out.write(thing)
     for thing in holdme:
         out.write(thing)
-
