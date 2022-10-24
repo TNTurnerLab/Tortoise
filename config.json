@@ -12,7 +12,8 @@
   "dv_out":"/dnv_wf_cpu/dv_out",
   "data_dir":"/data_dir/",
   "out_dir": "/dnv_wf_cpu/out",
-  "suffix": "_supersmall.bam"
+  "suffix": "_supersmall.bam",
+  "chrom_length":
 }
 
 
