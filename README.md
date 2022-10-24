@@ -4,7 +4,7 @@
 ### Washington University in St. Louis Medical School
 ### Tychele N. Turner, Ph.D., Lab
  
-This pipeline takes in aligned, short read Illumina data, in the form of .cram or .bam files, for a family trio and reports *de novo* variants in a .vcf file.  This is a modified version pipeline run from [Ng et al. 2021](https://www.biorxiv.org/content/10.1101/2021.05.27.445979v1.full), making use of the open source, CPU only versions of the programs that were GPU accelerated in the paper. This pipeline uses DeepVariant [(Poplin et al. 2018)](https://rdcu.be/7Dhl) and GATK Haplotypecaller to call variants [(Poplin et al. 2017)](https://www.biorxiv.org/content/10.1101/201178v3), GLnexus [(Lin et al. 2018)](https://www.biorxiv.org/content/10.1101/343970v1) for joint-genotyping , and lastly, a custom workflow to call *de novo* variants.  
+This pipeline takes in aligned, short read Illumina data, in the form of .cram or .bam files, for a family trio and reports *de novo* variants in a .vcf file.  This is a modified version pipeline run from [Ng et al. 2022](https://doi.org/10.1002/humu.24455), making use of the open source, CPU only versions of the programs that were GPU accelerated in the paper. This pipeline uses DeepVariant [(Poplin et al. 2018)](https://rdcu.be/7Dhl) and GATK Haplotypecaller to call variants [(Poplin et al. 2017)](https://www.biorxiv.org/content/10.1101/201178v3), GLnexus [(Lin et al. 2018)](https://www.biorxiv.org/content/10.1101/343970v1) for joint-genotyping , and lastly, a custom workflow to call *de novo* variants.  
  
 # How to Run
  
@@ -68,13 +68,15 @@ Before running, please make any necessary changes to these options below in the 
 * gq_value:  20 *gq value filter*
 * depth_value: 10 *Depth value filter*
 * suffix: "\_supersmall.bam" *Suffix of your data files.  Assumes input files are \<sample\_name\>\<suffix\>* 
+* family_file: "/dnv_wf_cpu/<your_family_file>"
+* chrom_length: Optional chromosome length file, use if you are not using human reference GRCh38. Can leave blank if using GRCh38. Please make this a two column, tab delimited file, with the first chromosome and the second column the length of the chromosome
 
 
 ## Running
  
 This pipeline can be run using the Docker image found here: `tnturnerlab/dnv_wf_cpu`
-We also provide the Dockerfile if you would like to make modifications.  [Please see below](#docker-build-instructions) to find instructions on how the docker image was built.  
- 
+We also provide the Dockerfile if you would like to make modifications.  
+
 ### Running on a LSF server
  
 First, set up the LSF_DOCKER_VOLUMES:
@@ -84,7 +86,7 @@ export LSF_DOCKER_VOLUMES="/path/to/crams/:/data_dir /path/to/reference:/referen
  
 Then run this command:
 ```
-bsub -q general -oo %J.main.log -R 'span[hosts=1] rusage[mem=5GB]' -a 'docker(tnturnerlab/dnv_wf_cpu)' /miniconda3/bin/snakemake -j 6 --cluster-config cluster_config.json --cluster "bsub -q general -R 'span[hosts=1] rusage[mem={cluster.mem}]' -n {cluster.n} -M {cluster.mem} -a 'docker(tnturnerlab/dnv_wf_cpu)' -M {cluster.mem} -oo %J.log.txt" -s gatk_deep_glnexus_qol.snake -k --rerun-incomplete -w 120 
+bsub -q general -oo %J.main.log -R 'span[hosts=1] rusage[mem=5GB]' -a 'docker(tnturnerlab/tortoise:v1.1)' /opt/conda/envs/snake/bin/snakemake -s /dnv_wf_cpu/tortoise_1.1.smk -j 6 --cluster-config cluster_config.json --cluster "bsub -q general -R 'span[hosts=1] rusage[mem={cluster.mem}]' -n {cluster.n} -M {cluster.mem} -a 'docker(tnturnerlab/tortoise:v1.1)' -M {cluster.mem} -oo %J.log.txt" -k --rerun-incomplete -w 120 
 ```
  
 ### Running locally
@@ -94,7 +96,8 @@ To run the small test samples provided, please ensure you have at least 16GB of 
 To run this locally, please run this command:
  
 ```
-docker run -v "/path/to/crams/:/data_dir" -v "/path/to/reference:/reference" -v "/path/to/this/git/repo/:/dnv_wf_cpu/" -v "/path/to/RepeatMasker/files:/region" tnturnerlab/dnv_wf_cpu /miniconda3/bin/snakemake -s /dnv_wf_cpu/gatk_deep_glnexus_wf_local.snake -k --rerun-incomplete -w 120
+docker run -v "/path/to/crams/:/data_dir" -v "/path/to/hare/code:/dnv_wf_cpu" -v "/path/to/reference:/reference"  -v "/path/to/RepeatMasker/region/files:/region" tnturnerlab/tortoise:v1.1 /opt/conda/envs/snake/bin/snakemake -s /dnv_wf_cpu/tortoise_1.1.smk -j 6 --cores -k --rerun-incomplete -w 120 
+
 ```
  
 ## Output
@@ -123,46 +126,18 @@ chr5 	52352927    	chr5_52352927_T_C  T      	C     	56    	.        	AC=1;AF=0.
 ## Software Requirements
  
 * All software requirements are built in to the docker image.  The  software packages built are as follows:
-  * DeepVariant v0.10.0
-  * GATK v4.1.0.0
-  * GLnexus v1.2.6
-  * Snakemake v3.12.0
-  * python 3.6.5
+  * DeepVariant v1.4
+  * GATK v4.2.0.0
+  * GLnexus v1.4.1
+  * Snakemake v7.15.2-0
+  * python 3.9.7
   * python 2.7
-  * BCFtools v1.9
-  * SAMtools v1.9
+  * BCFtools v1.11
+  * SAMtools v1.11
   * bedtools v2.29.2
-  * tabix v1.9
-  * vcflib v1.0.0-rc0-333-g5b0f-dirty
-  * openjdk 8
+  * tabix v1.11
+  * vcflib v1.0.0-rc0
  
-## Docker build instructions
-  
-* If you  want to build the docker image from the Dockerfile, you'll need to be inside the DeepVariant code base (we build DeepVariant from v0.10.0 source).  
- 
-```
-wget https://github.com/google/deepvariant/archive/refs/tags/v0.10.0.zip
-unzip v0.10.0.zip
-```
- 
-* You can then copy our Dockerfile into this folder
- 
-```
-cp dnv_workflow_cpu/dockerfiles/Dockerfile deepvariant-0.10.0
-``` 
- 
-* Lastly, go inside the DeepVariant folder and change the settings.sh file and change the export DV_USE_GCP_OPTIMIZED_TF_WHL to 0, this can be found on line 91.  The line should look like this:
- 
-```
-export DV_USE_GCP_OPTIMIZED_TF_WHL="${DV_USE_GCP_OPTIMIZED_TF_WHL:-0}"
-```
- 
-* Now you can build the docker image from inside the DeepVariant folder.
- 
-```
-docker build deepvariant-0.10.0/
-```
-
 
  
 
