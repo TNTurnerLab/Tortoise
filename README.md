@@ -74,7 +74,7 @@ Before running, please make any necessary changes to these options below in the 
 
 ## Running
  
-This pipeline can be run using the Docker image found here: `tnturnerlab/dnv_wf_cpu`
+This pipeline can be run using the Docker image found here: `tnturnerlab/tortoise:v1.1`
 We also provide the Dockerfile if you would like to make modifications.  
 
 ### Running on a LSF server
