@@ -62,6 +62,17 @@ wget -q https://de.cyverse.org/dl/d/786D1640-3A26-4A1C-B96F-425065FBC6B7/CpG_sit
 wget -q https://de.cyverse.org/dl/d/713F020E-246B-4C47-BBC3-D4BB86BFB6E9/CpG_sites_sorted_b38.bed.gz.tbi
 ```
  
+
+
+## Running
+ 
+This pipeline can be run using the Docker image found here: `tnturnerlab/tortoise:v1.1`
+We also provide the Dockerfile if you would like to make modifications.  
+
+### Snakemake
+
+#### Setting up the config.json file
+
 Before running, please make any necessary changes to these options below in the config.json. 
  
 * regions:  "/region" *If you don't have the RepeatMasker files, please make this entry blank*
@@ -72,10 +83,6 @@ Before running, please make any necessary changes to these options below in the 
 * chrom_length: Optional chromosome length file, use if you are not using human reference GRCh38. Can leave blank if using GRCh38. Please make this a two column, tab delimited file, with the first chromosome and the second column the length of the chromosome
 
 
-## Running
- 
-This pipeline can be run using the Docker image found here: `tnturnerlab/tortoise:v1.1`
-We also provide the Dockerfile if you would like to make modifications.  
 
 ### Running on a LSF server
  
@@ -100,6 +107,52 @@ docker run -v "/path/to/crams/:/data_dir" -v "/path/to/hare/code:/dnv_wf_cpu" -v
 
 ```
  
+#### Cromwell workflow
+
+We also provide this workflow in a .wdl format.  Unlike the Snakemake, you will be able to run Parabricks directly from this workflow, instead of separately.  You can also run this workflow in the cloud.  To run this, you'll need to download the [Cromwell .jar found here](https://github.com/broadinstitute/cromwell/releases).  This wdl was specificlly tested on cromwell-83.  
+
+The basic config file looks like this:
+```
+{
+  "jumping_tortoise.glnexus_cpu": "Int (optional, default = 32)",
+  "jumping_tortoise.glnexus_ram_hc": "Int (optional, default = 250)",
+  "jumping_tortoise.maxPreemptAttempts": "Int (optional, default = 3)",
+  "jumping_tortoise.extra_mem_hc": "Int (optional, default = 65)",
+  "jumping_tortoise.test_intersect": "File", #pathway to the test_intersect.py file
+  "jumping_tortoise.chrom_length": "File? (optional)",  #Optional chromosome length file if you are not using Human build GRCh38
+  "jumping_tortoise.combinedAndFilter.extramem_GLDV": "Int? (optional)",
+  "jumping_tortoise.pathToReference": "File",  #pathway to tarball of reference information
+  "jumping_tortoise.glnexus_ram_dv": "Int (optional, default = 100)",
+  "jumping_tortoise.wes": "Boolean (optional, default = false)",   #Please set this to true if you are analyzing WES data
+  "jumping_tortoise.glnexus_DV.extramem_GLDV": "Int? (optional)",
+  "jumping_tortoise.hare_docker": "String (optional, default = \"tnturnerlab/hare:v1.1\")",
+  "jumping_tortoise.cram_files": "Array[Array[WomCompositeType {\n cram -> File\ncrai -> File \n}]]",  #cram/bam file input, please see example for formating
+  "jumping_tortoise.regions": "File? (optional)",
+  "jumping_tortoise.cpu_dv": "Int (optional, default = 32)",
+  "jumping_tortoise.naive_inheritance_trio_py2": "File",
+  "jumping_tortoise.sample_suffix": "String",  #suffix of the input cram file.  If your sample was NA12878.final.cram, you would put ".final.cram" here
+  "jumping_tortoise.num_ram_dv": "Int (optional, default = 120)",
+  "jumping_tortoise.glnexus_HC.extramem_GLDV": "Int? (optional)",
+  "jumping_tortoise.deep_docker": "String (optional, default = \"tnturnerlab/tortoise:v1.1\")",
+  "jumping_tortoise.filter_glnexuscombined_updated": "File",
+  "jumping_tortoise.gq": "Int (optional, default = 20)",
+  "jumping_tortoise.extra_mem_dv": "Int (optional, default = 65)",
+  "jumping_tortoise.trios": "Array[WomCompositeType {\n father -> String\nmother -> String\nchild -> String \n}]",   #trios MUST be in same order as trios in cram_file
+  "jumping_tortoise.depth": "Int (optional, default = 10)",
+  "jumping_tortoise.deep_model": "String (optional, default = \"WGS\")",
+  "jumping_tortoise.num_ram_hc": "Int (optional, default = 64)",
+  "jumping_tortoise.interval_file": "String (optional, default = \"None\")",
+  "jumping_tortoise.glnexus_deep_model": "String (optional, default = \"DeepVariant\")",
+  "jumping_tortoise.reference": "String",
+  "jumping_tortoise.cpu_hc": "Int (optional, default = 4)"
+} 
+```
+Required arguments are highlighted in comments above.  We have provided an example config to help with formatting. Please modify the computational requirements to fit your HPC.  If you are running it on Google CLoud Platform, you may keep the computation settings. Requirements are based on [NVIDIA's own workflows found here.](https://github.com/clara-parabricks-workflows/parabricks-wdl)  If you are going to use this wdl, please tarball your reference files.  If you are running WES data, please include your capture region in this tarball.
+```
+tar -jcf reference.tar.bz2 reference.fa reference.fa.fai reference.dict
+```
+
+
 ## Output
  
 ### With the regions option
