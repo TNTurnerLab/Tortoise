@@ -12,6 +12,7 @@ RUN conda install -c bioconda bcftools=1.11 \
     && conda install -c bioconda samtools=1.11 \
     && conda install -c bioconda gatk4=4.2.0.0
 RUN conda create -n snake -c bioconda -c conda-forge snakemake=7.15.2-0
+RUN conda create -n wes_filter -c bioconda -c conda-forge python=3.7.1 libgcc-ng=10.3.0 pybedtools=0.9.0
 RUN conda create -n py2 python=2.7
 
 FROM ubuntu:20.04
@@ -160,7 +161,6 @@ RUN apt-get -y update && \
   rm -rf /var/lib/apt/lists/*
 WORKDIR /
 RUN wget https://github.com/dnanexus-rnd/GLnexus/releases/download/v1.4.1/glnexus_cli && chmod +x glnexus_cli
-RUN apt-get update && apt-get install -y --no-install-recommends gcc libz-dev libopenblas-base && pip3 install pytabix
+RUN apt-get update && apt-get install -y --no-install-recommends gcc libz-dev libopenblas-base && pip3 install pytabix 
 
 CMD ["/bin/bash"]
-
