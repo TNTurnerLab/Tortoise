@@ -147,7 +147,7 @@ The basic config file looks like this:
   "jumping_tortoise.cpu_hc": "Int (optional, default = 4)"
 } 
 ```
-Required arguments are highlighted in comments above.  We have provided an example config to help with formatting. Please modify the computational requirements to fit your HPC.  If you are running it on Google CLoud Platform, you may keep the computation settings. Requirements are based on [NVIDIA's own workflows found here.](https://github.com/clara-parabricks-workflows/parabricks-wdl)  If you are going to use this wdl, please tarball your reference files.  If you are running WES data, please include your capture region in this tarball.
+Required arguments are highlighted in comments above.  We have provided an example config to help with formatting. Please modify the computational requirements to fit your HPC.  If you are going to use this wdl, please tarball your reference files.  If you are running WES data, please include your capture region in this tarball.  
 ```
 tar -jcf reference.tar.bz2 reference.fa reference.fa.fai reference.dict
 ```
