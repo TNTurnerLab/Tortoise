@@ -1,0 +1,34 @@
+{
+  "jumping_tortoise.pathToReference": "/path/to/reference_tarball/reference.tar.bz2",
+  "jumping_tortoise.reference": "reference.fa",  
+  "jumping_tortoise.sample_suffix": "_supersmall.bam",
+  "jumping_tortoise.glnexus_ram_hc": 150,
+  "jumping_tortoise.glnexus_ram_dv": 150,
+  "jumping_tortoise.cram_files": [
+  [
+    {
+      "cram": "/path/toNA12891_supersmall.bam",
+      "crai": "/path/toNA12891_supersmall.bam.bai"
+    },
+    {
+      "cram": "/path/toNA12892_supersmall.bam",
+      "crai": "/path/toNA12892_supersmall.bam.bai"
+    },
+    {
+      "cram": "/path/toNA12878_supersmall.bam",
+      "crai": "/path/toNA12878_supersmall.bam.bai"
+    }
+  ]
+  ],
+  "jumping_tortoise.naive_inheritance_trio_py2":"/path/to/naive_inheritance_trio_py2.py",
+  "jumping_tortoise.test_intersect":"/path/to/test_intersect.py",
+  "jumping_tortoise.filter_glnexuscombined_updated":"/path/to/filter_glnexuscombined_updated.py",
+  "jumping_tortoise.trios":[
+  {
+    "father" :"NA12891",
+    "mother": "NA12892",
+    "child": "NA12878"
+  }
+  ],
+  "jumping_tortoise.regions": "/path/to/regions.tar.bz2"
+}
