@@ -81,6 +81,9 @@ Before running, please make any necessary changes to these options below in the 
 * suffix: "\_supersmall.bam" *Suffix of your data files.  Assumes input files are \<sample\_name\>\<suffix\>* 
 * family_file: "/dnv_wf_cpu/<your_family_file>"
 * chrom_length: Optional chromosome length file, use if you are not using human reference GRCh38. Can leave blank if using GRCh38. Please make this a two column, tab delimited file, with the first chromosome and the second column the length of the chromosome
+* "glnexus_dv_model": Optional model file, if you are running Deepvariant on WES data, please add "DeepVariantWES".  Otherwise, leave this blank
+* "interval_file": If you are using an interval, please provide the path here.  If not, please leave this blank. ,
+*  "dv_model":  Please add the DeepVariant model here, defaults to WGS.  
 
 
 
@@ -152,6 +155,14 @@ Required arguments are highlighted in comments above.  We have provided an examp
 tar -jcf reference.tar.bz2 reference.fa reference.fa.fai reference.dict
 ```
 
+You will also need to put the RepeatMaster files into a separte tarball.  
+
+Please find the [Cromwell documentation](https://cromwell.readthedocs.io/en/stable/) for a submission command that fits your specific HPC, but generally  it would be run like this:
+
+```
+java -jar cromwell-83.jar run tortoise_1.2.wdl --inputs test_wdl_config.json
+```
+
 
 ## Output
  
@@ -176,6 +187,14 @@ chr5 	51158671    	chr5_51158671_A_G A      	G     	43    	.        	AC=1;AF=0.1
 chr5 	52352927    	chr5_52352927_T_C  T      	C     	56    	.        	AC=1;AF=0.167;AN=6;INH=denovo_pro;TRANSMITTED=no;set=Intersection  	GT:AD:DP:GQ:PL:RNC     	0/1:17,15:32:55:56,0,61        	0/0:28,0:28:50:0,102,1019 	0/0:26,0:26:50:0,114,1139
 ```
 
+If you wanted to use the WES filter script, you can do the follow:
+```
+docker run -v "/path/to/script:/script" -v "/path/to/data:/data" -v "/path/to/interval_file:/interval_file_path tnturnerlab/tortoise:v1.2 /opt/conda/envs/wes_filter/bin/python /script/wes_result_filter.py -p /data -i /interval_file_path/interval_file.bed -o /script/test_out
+```
+
+This script will separate your WES DNVs into high and low confidence files.  One as a bed file and another as a tab-delimited .txt file. 
+
+
 ## Software Requirements
  
 * All software requirements are built in to the docker image.  The  software packages built are as follows:
@@ -190,6 +209,7 @@ chr5 	52352927    	chr5_52352927_T_C  T      	C     	56    	.        	AC=1;AF=0.
   * bedtools v2.29.2
   * tabix v1.11
   * vcflib v1.0.0-rc0
+  * pybedtools v0.9.0
  
 
  
