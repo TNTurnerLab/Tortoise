@@ -15,6 +15,8 @@ Two main inputs:
 1) .bam or .cram files for the trio(s)
 2) A comma delimited text file, with one trio per line, with sample IDs formatted in the following way:  Father,Mother,Child
  
+You may run WGS, WES, and PacBio long-read sequencing data.  
+ 
 You may download the full 30x WGS NA12878 trio .cram files from the 1000 Genomes Project to test the workflow, links found below:
  
 ```
@@ -83,7 +85,7 @@ Before running, please make any necessary changes to these options below in the 
 * chrom_length: Optional chromosome length file, use if you are not using human reference GRCh38. Can leave blank if using GRCh38. Please make this a two column, tab delimited file, with the first chromosome and the second column the length of the chromosome
 * "glnexus_dv_model": Optional model file, if you are running Deepvariant on WES data, please add "DeepVariantWES".  Otherwise, leave this blank
 * "interval_file": If you are using an interval, please provide the path here.  If not, please leave this blank. ,
-*  "dv_model":  Please add the DeepVariant model here, defaults to WGS.  
+*  "dv_model":  Please add the DeepVariant model here, defaults to WGS.  Change this to WES or PACBIO if you are running those types of data
 
 
 
@@ -130,7 +132,7 @@ The basic config file looks like this:
   "jumping_tortoise.glnexus_DV.extramem_GLDV": "Int? (optional)",
   "jumping_tortoise.hare_docker": "String (optional, default = \"tnturnerlab/hare:v1.1\")",
   "jumping_tortoise.cram_files": "Array[Array[WomCompositeType {\n cram -> File\ncrai -> File \n}]]",  #cram/bam file input, please see example for formating
-  "jumping_tortoise.regions": "File? (optional)",
+  "jumping_tortoise.regions": "File? (optional)",  #This is the tarball for your RepeatMaster files
   "jumping_tortoise.cpu_dv": "Int (optional, default = 32)",
   "jumping_tortoise.naive_inheritance_trio_py2": "File",
   "jumping_tortoise.sample_suffix": "String",  #suffix of the input cram file.  If your sample was NA12878.final.cram, you would put ".final.cram" here
@@ -142,7 +144,7 @@ The basic config file looks like this:
   "jumping_tortoise.extra_mem_dv": "Int (optional, default = 65)",
   "jumping_tortoise.trios": "Array[WomCompositeType {\n father -> String\nmother -> String\nchild -> String \n}]",   #trios MUST be in same order as trios in cram_file
   "jumping_tortoise.depth": "Int (optional, default = 10)",
-  "jumping_tortoise.deep_model": "String (optional, default = \"WGS\")",
+  "jumping_tortoise.deep_model": "String (optional, default = \"WGS\")",  #Please change this to WES or PACBIO depending if you are running those types of data
   "jumping_tortoise.num_ram_hc": "Int (optional, default = 64)",
   "jumping_tortoise.interval_file": "String (optional, default = \"None\")",
   "jumping_tortoise.glnexus_deep_model": "String (optional, default = \"DeepVariant\")",
