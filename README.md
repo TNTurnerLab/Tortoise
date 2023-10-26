@@ -4,7 +4,7 @@
 ### Washington University in St. Louis Medical School
 ### Tychele N. Turner, Ph.D., Lab
  
-This pipeline takes in aligned, short read Illumina data, in the form of .cram or .bam files, for a family trio and reports *de novo* variants in a .vcf file.  This is a modified version pipeline run from [Ng et al. 2022](https://doi.org/10.1002/humu.24455), making use of the open source, CPU only versions of the programs that were GPU accelerated in the paper. This pipeline uses DeepVariant [(Poplin et al. 2018)](https://rdcu.be/7Dhl) and GATK Haplotypecaller to call variants [(Poplin et al. 2017)](https://www.biorxiv.org/content/10.1101/201178v3), GLnexus [(Lin et al. 2018)](https://www.biorxiv.org/content/10.1101/343970v1) for joint-genotyping , and lastly, a custom workflow to call *de novo* variants.  
+This pipeline takes in aligned, short-read Illumina data, in the form of .cram or .bam files, for a family trio and reports *de novo* variants in a .vcf file.  This is a modified version pipeline run from [Ng et al. 2022](https://doi.org/10.1002/humu.24455), making use of the open-source, CPU-only versions of the programs outlined in the paper. This pipeline uses DeepVariant [(Poplin et al. 2018)](https://rdcu.be/7Dhl) and GATK Haplotypecaller to call variants [(Poplin et al. 2017)](https://www.biorxiv.org/content/10.1101/201178v3), GLnexus [(Lin et al. 2018)](https://www.biorxiv.org/content/10.1101/343970v1) for joint-genotyping, and lastly, a custom workflow to call *de novo* variants.  
  
 # How to Run
  
@@ -13,11 +13,11 @@ This pipeline takes in aligned, short read Illumina data, in the form of .cram o
 Two main inputs:
  
 1) .bam or .cram files for the trio(s)
-2) A comma delimited text file, with one trio per line, with sample IDs formatted in the following way:  Father,Mother,Child
+2) A comma-delimited text file, with one trio per line, with sample IDs formatted in the following way:  Father,Mother,Child
  
 You may run WGS, WES, and PacBio long-read sequencing data.  
  
-You may download the full 30x WGS NA12878 trio .cram files from the 1000 Genomes Project to test the workflow, links found below:
+You may download the full 30x WGS NA12878 trio .cram files from the 1000 Genomes Project to test the workflow, links are found below:
  
 ```
 wget -q ftp://ftp.sra.ebi.ac.uk/vol1/run/ERR323/ERR3239334/NA12878.final.cram
@@ -68,7 +68,7 @@ wget -q https://de.cyverse.org/dl/d/713F020E-246B-4C47-BBC3-D4BB86BFB6E9/CpG_sit
 
 ## Running
  
-This pipeline can be run using the Docker image found here: `tnturnerlab/tortoise:v1.1`
+This pipeline can be run using the Docker image found here: `tnturnerlab/tortoise:v1.2`
 We also provide the Dockerfile if you would like to make modifications.  
 
 ### Snakemake
@@ -82,7 +82,7 @@ Before running, please make any necessary changes to these options below in the 
 * depth_value: 10 *Depth value filter*
 * suffix: "\_supersmall.bam" *Suffix of your data files.  Assumes input files are \<sample\_name\>\<suffix\>* 
 * family_file: "/dnv_wf_cpu/<your_family_file>"
-* chrom_length: Optional chromosome length file, use if you are not using human reference GRCh38. Can leave blank if using GRCh38. Please make this a two column, tab delimited file, with the first chromosome and the second column the length of the chromosome
+* chrom_length: Optional chromosome length file, use if you are not using human reference GRCh38. Can leave it blank if using GRCh38. Please make this a two-column, tab-delimited file, with the first chromosome and the second column the length of the chromosome
 * "glnexus_dv_model": Optional model file, if you are running Deepvariant on WES data, please add "DeepVariantWES".  Otherwise, leave this blank
 * "interval_file": If you are using an interval, please provide the path here.  If not, please leave this blank. ,
 *  "dv_model":  Please add the DeepVariant model here, defaults to WGS.  Change this to WES or PACBIO if you are running those types of data
@@ -90,7 +90,9 @@ Before running, please make any necessary changes to these options below in the 
 
 
 ### Running on a LSF server
- 
+
+For ease of use, we recommend having as much of the data in the same head directory as possible.
+
 First, set up the LSF_DOCKER_VOLUMES:
 ```
 export LSF_DOCKER_VOLUMES="/path/to/crams/:/data_dir /path/to/reference:/reference /path/to/this/git/repo/:/dnv_wf_cpu/ /path/to/RepeatMasker/files:/region"
@@ -98,23 +100,25 @@ export LSF_DOCKER_VOLUMES="/path/to/crams/:/data_dir /path/to/reference:/referen
  
 Then run this command:
 ```
-bsub -q general -oo %J.main.log -R 'span[hosts=1] rusage[mem=5GB]' -a 'docker(tnturnerlab/tortoise:v1.1)' /opt/conda/envs/snake/bin/snakemake -s /dnv_wf_cpu/tortoise_1.1.smk -j 6 --cluster-config cluster_config.json --cluster "bsub -q general -R 'span[hosts=1] rusage[mem={cluster.mem}]' -n {cluster.n} -M {cluster.mem} -a 'docker(tnturnerlab/tortoise:v1.1)' -M {cluster.mem} -oo %J.log.txt" -k --rerun-incomplete -w 120 
+bsub -q general -oo %J.main.log -R 'span[hosts=1] rusage[mem=5GB]' -a 'docker(tnturnerlab/tortoise:v1.2)' /opt/conda/envs/snake/bin/snakemake -s /dnv_wf_cpu/tortoise_1.2.smk -j 6 --cluster-config cluster_config.json --cluster "bsub -q general -R 'span[hosts=1] rusage[mem={cluster.mem}]' -n {cluster.n} -M {cluster.mem} -a 'docker(tnturnerlab/tortoise:v1.2)' -M {cluster.mem} -oo %J.log.txt" -k --rerun-incomplete -w 120 
 ```
  
 ### Running locally
  
-To run the small test samples provided, please ensure you have at least 16GB of RAM. To run a full sized trio, please ensure your machine has at least 64GB of RAM.  The pipeline will use as many CPUs as possible.  
+To run the small test samples provided, please ensure you have at least 16GB of RAM. To run a full-sized trio, please ensure your machine has at least 64GB of RAM.  The pipeline will use as many CPUs as possible.  
+
+For ease of use, we recommend having as much of the data in the same head directory as possible.
  
 To run this locally, please run this command:
  
 ```
-docker run -v "/path/to/crams/:/data_dir" -v "/path/to/hare/code:/dnv_wf_cpu" -v "/path/to/reference:/reference"  -v "/path/to/RepeatMasker/region/files:/region" tnturnerlab/tortoise:v1.1 /opt/conda/envs/snake/bin/snakemake -s /dnv_wf_cpu/tortoise_1.1.smk -j 6 --cores -k --rerun-incomplete -w 120 
+docker run -v "/path/to/crams/:/data_dir" -v "/path/to/hare/code:/dnv_wf_cpu" -v "/path/to/data:/data"  tnturnerlab/tortoise:v1.2 /opt/conda/envs/snake/bin/snakemake -s /dnv_wf_cpu/tortoise_1.2.smk -j 6 --cores -k --rerun-incomplete -w 120 
 
 ```
  
 #### Cromwell workflow
 
-We also provide this workflow in a .wdl format.  Unlike the Snakemake, you will be able to run Parabricks directly from this workflow, instead of separately.  You can also run this workflow in the cloud.  To run this, you'll need to download the [Cromwell .jar found here](https://github.com/broadinstitute/cromwell/releases).  This wdl was specificlly tested on cromwell-83.  
+We also provide this workflow in a .wdl format.  Unlike the Snakemake, you will be able to run Parabricks directly from this workflow, instead of separately.  You can also run this workflow in the cloud.  To run this, you'll need to download the [Cromwell .jar found here](https://github.com/broadinstitute/cromwell/releases).  This wdl was specifically tested on cromwell-83.  
 
 The basic config file looks like this:
 ```
@@ -131,7 +135,7 @@ The basic config file looks like this:
   "jumping_tortoise.wes": "Boolean (optional, default = false)",   #Please set this to true if you are analyzing WES data
   "jumping_tortoise.glnexus_DV.extramem_GLDV": "Int? (optional)",
   "jumping_tortoise.hare_docker": "String (optional, default = \"tnturnerlab/hare:v1.1\")",
-  "jumping_tortoise.cram_files": "Array[Array[WomCompositeType {\n cram -> File\ncrai -> File \n}]]",  #cram/bam file input, please see example for formating
+  "jumping_tortoise.cram_files": "Array[Array[WomCompositeType {\n cram -> File\ncrai -> File \n}]]",  #cram/bam file input, please see example for formatting
   "jumping_tortoise.regions": "File? (optional)",  #This is the tarball for your RepeatMaster files
   "jumping_tortoise.cpu_dv": "Int (optional, default = 32)",
   "jumping_tortoise.naive_inheritance_trio_py2": "File",
@@ -142,7 +146,7 @@ The basic config file looks like this:
   "jumping_tortoise.filter_glnexuscombined_updated": "File",
   "jumping_tortoise.gq": "Int (optional, default = 20)",
   "jumping_tortoise.extra_mem_dv": "Int (optional, default = 65)",
-  "jumping_tortoise.trios": "Array[WomCompositeType {\n father -> String\nmother -> String\nchild -> String \n}]",   #trios MUST be in same order as trios in cram_file
+  "jumping_tortoise.trios": "Array[WomCompositeType {\n father -> String\nmother -> String\nchild -> String \n}]",   #trios MUST be in the same order as trios in cram_file
   "jumping_tortoise.depth": "Int (optional, default = 10)",
   "jumping_tortoise.deep_model": "String (optional, default = \"WGS\")",  #Please change this to WES or PACBIO depending if you are running those types of data
   "jumping_tortoise.num_ram_hc": "Int (optional, default = 64)",
@@ -152,12 +156,12 @@ The basic config file looks like this:
   "jumping_tortoise.cpu_hc": "Int (optional, default = 4)"
 } 
 ```
-Required arguments are highlighted in comments above.  We have provided an example config to help with formatting. Please modify the computational requirements to fit your HPC.  If you are going to use this wdl, please tarball your reference files.  If you are running WES data, please include your capture region in this tarball.  
+Required arguments are highlighted in the comments above.  We have provided an example config to help with formatting. Please modify the computational requirements to fit your HPC.  If you are going to use this wdl, please tarball your reference files.  If you are running WES data, please include your capture region in this tarball.  
 ```
 tar -jcf reference.tar.bz2 reference.fa reference.fa.fai reference.dict
 ```
 
-You will also need to put the RepeatMaster files into a separte tarball.  
+You will also need to put the RepeatMaster files into a separate tarball.  
 
 Please find the [Cromwell documentation](https://cromwell.readthedocs.io/en/stable/) for a submission command that fits your specific HPC, but generally  it would be run like this:
 
@@ -189,7 +193,7 @@ chr5 	51158671    	chr5_51158671_A_G A      	G     	43    	.        	AC=1;AF=0.1
 chr5 	52352927    	chr5_52352927_T_C  T      	C     	56    	.        	AC=1;AF=0.167;AN=6;INH=denovo_pro;TRANSMITTED=no;set=Intersection  	GT:AD:DP:GQ:PL:RNC     	0/1:17,15:32:55:56,0,61        	0/0:28,0:28:50:0,102,1019 	0/0:26,0:26:50:0,114,1139
 ```
 
-If you wanted to use the WES filter script, you can do the follow:
+If you want to use the WES filter script, you can do the following:
 ```
 docker run -v "/path/to/script:/script" -v "/path/to/data:/data" -v "/path/to/interval_file:/interval_file_path tnturnerlab/tortoise:v1.2 /opt/conda/envs/wes_filter/bin/python /script/wes_result_filter.py -p /data -i /interval_file_path/interval_file.bed -o /script/test_out
 ```
@@ -199,7 +203,7 @@ This script will separate your WES DNVs into high and low confidence files.  One
 
 ## Software Requirements
  
-* All software requirements are built in to the docker image.  The  software packages built are as follows:
+* All software requirements are built into the docker image.  The  software packages built are as follows:
   * DeepVariant v1.4
   * GATK v4.2.0.0
   * GLnexus v1.4.1
