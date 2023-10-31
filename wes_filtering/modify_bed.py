@@ -6,7 +6,7 @@ parser.add_argument('-i','--interval',help='path to interval file')
 parser.add_argument('-c','--change',help='number to change cut bedfile by, defaults to 40',default=40,type=int)
 args = parser.parse_args()
 
-with open("mod_bedfile/changed_bedfile_pm"+str(args.change)+'.bed','w') as out:
+with open("/wes_filter/mod_bedfile/changed_bedfile_pm"+str(args.change)+'.bed','w') as out:
     with open(args.interval) as input:
         for line in input:
             data=line.strip().split('\t')
