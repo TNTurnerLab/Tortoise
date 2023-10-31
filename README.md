@@ -193,9 +193,9 @@ chr5 	51158671    	chr5_51158671_A_G A      	G     	43    	.        	AC=1;AF=0.1
 chr5 	52352927    	chr5_52352927_T_C  T      	C     	56    	.        	AC=1;AF=0.167;AN=6;INH=denovo_pro;TRANSMITTED=no;set=Intersection  	GT:AD:DP:GQ:PL:RNC     	0/1:17,15:32:55:56,0,61        	0/0:28,0:28:50:0,102,1019 	0/0:26,0:26:50:0,114,1139
 ```
 
-If you want to use the WES filter script, you can do the following:
+If you want to use the WES filter, please modify the config.json file in the ```wes_filtering``` folder.  You can run the Snakemake with a docker command like this:
 ```
-docker run -v "/path/to/script:/script" -v "/path/to/data:/data" -v "/path/to/interval_file:/interval_file_path tnturnerlab/tortoise:v1.2 /opt/conda/envs/wes_filter/bin/python /script/wes_result_filter.py -p /data -i /interval_file_path/interval_file.bed -o /script/test_out
+docker run -v "/path/to/script:/wes_filter" -v "/path/to/data:/data"  tnturnerlab/tortoise:v1.2 /opt/conda/envs/snake/bin/snakemake -s wes_filter.smk --cores -s /wes_filter/wes_filter.smk --cores 
 ```
 
 This script will separate your WES DNVs into high and low confidence files.  One as a bed file and another as a tab-delimited .txt file. 
